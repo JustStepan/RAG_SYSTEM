@@ -14,11 +14,14 @@ from prompts import system_prompt
 from models import local_model
 
 
+local_model = local_model.bind_tools(tools)
+
+
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
 
 
-def should_continue(state: AgentState) -> str:
+def should_continue(state: AgentState) -> bool:
     """Check if the last message contains tool_calls"""
 
     result = state["messages"][-1]

@@ -6,11 +6,12 @@ BASE_DIR = Path(__file__).parent
 
 
 class Settings(BaseSettings):
-    DB_STORAGE: str = f'{BASE_DIR}/storage/'
-    CHAT_MEMORY_DIR: str = f'{BASE_DIR}/memory/'
+    DB_STORAGE: Path = BASE_DIR / "storage"
+    CHAT_MEMORY_DIR: Path = BASE_DIR / "memory"
     PDF_DIR: Path = BASE_DIR / "PDF"
     COLLECTION_NAME: str
     OPENAI_API_KEY: str
+    TAVILY_API_KEY: str
     LLM_MODEL: str = "qwen3.5-9b"
     EMBEDDING_MODEL: str = "text-embedding-berta-uncased"
     LLM_URL: str = "http://localhost:1234/v1"

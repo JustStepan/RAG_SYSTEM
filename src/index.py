@@ -1,4 +1,5 @@
 import os
+import tqdm
 from pathlib import Path
 
 from langchain_chroma import Chroma
@@ -50,8 +51,8 @@ def index_pdf_folder(pdf_folder):
         chunk_overlap=settings.CHUNK_OVERLAP
     )
 
-    for pdf_path in valid_pdf_files:
-        logger.info(f'Добавляем файл {pdf_path} в базу данных.')
+    for pdf_path in tqdm.tqdm(valid_pdf_files, desc="Индексация PDF", unit="файл"):
+        logger.info(f'Добавляем файл "{pdf_path.name}" в базу данных.')
         docs = get_split_pages(pdf_path, text_splitter)
 
         valid_docs = [
@@ -61,12 +62,19 @@ def index_pdf_folder(pdf_folder):
             and isinstance(doc.page_content, str)
             and doc.page_content.strip()
         ]
-
         logger.info(
-            f"Файл {pdf_path.name} отфильтрован: {len(docs)} -> {len(valid_docs)} валидных чанков"
+            f"Файл '{pdf_path.name}' отфильтрован: {len(docs)} -> {len(valid_docs)} валидных чанков"
         )
+
+        if len(valid_docs) >= 5000:
+            logger.info(f'Разделяем чанки: "{pdf_path.name}"')
+
+        while len(valid_docs) >= 5000:
+            chroma_db.add_documents(valid_docs[:5000])
+            valid_docs = valid_docs[5000:]
         chroma_db.add_documents(valid_docs)
-        logger.info(f'Проиндексирован: {pdf_path.name}')
+    
+        logger.info(f'Проиндексирован файл: "{pdf_path.name}"')
 
 
 def get_split_pages(pdf_path: Path, splitter: RecursiveCharacterTextSplitter):
@@ -74,13 +82,13 @@ def get_split_pages(pdf_path: Path, splitter: RecursiveCharacterTextSplitter):
 
     try:
         pages = pdf_loader.load()
-        logger.info(f"PDF документ был загружет и имеет {len(pages)} страниц")
+        logger.info(f"PDF документ '{pdf_path.name}' был загружет и имеет {len(pages)} страниц")
     except Exception as e:
         logger.error(f"Ошибка загрузки документа '{pdf_path.name}': {e}")
         raise
 
     docs = splitter.split_documents(pages)
-    logger.info(f'Документ {pdf_path.name} разбит на {len(docs)} частей')
+    logger.info(f'Документ "{pdf_path.name}" разбит на {len(docs)} частей')
 
     return docs
 

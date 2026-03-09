@@ -24,8 +24,16 @@ def get_or_create_db():
 
 
 def get_indexed_sources(db) -> set[Path]:
-    data = db._collection.get()
-    return set(Path(m['source']) for m in data['metadatas'] if m)
+    all_metadatas = []
+    offset = 0
+    while True:
+        batch = db._collection.get(limit=1000, offset=offset, include=["metadatas"])
+        if batch.get('metadatas'):
+            all_metadatas.extend(batch['metadatas'])
+            offset += 1000
+        else:
+            break
+    return set(Path(m['source']) for m in all_metadatas if m)
 
 
 def index_pdf_folder(pdf_folder):
@@ -62,6 +70,11 @@ def index_pdf_folder(pdf_folder):
             and isinstance(doc.page_content, str)
             and doc.page_content.strip()
         ]
+
+        if not valid_docs:
+            logger.warning(f'Нет валидных чанков для "{pdf_path.name}", пропускаем.')
+            continue
+        
         logger.info(
             f"Файл '{pdf_path.name}' отфильтрован: {len(docs)} -> {len(valid_docs)} валидных чанков"
         )
@@ -85,7 +98,7 @@ def get_split_pages(pdf_path: Path, splitter: RecursiveCharacterTextSplitter):
         logger.info(f"PDF документ '{pdf_path.name}' был загружет и имеет {len(pages)} страниц")
     except Exception as e:
         logger.error(f"Ошибка загрузки документа '{pdf_path.name}': {e}")
-        raise
+        return []
 
     docs = splitter.split_documents(pages)
     logger.info(f'Документ "{pdf_path.name}" разбит на {len(docs)} частей')

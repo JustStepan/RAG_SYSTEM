@@ -15,7 +15,7 @@ local_embeddings = OpenAIEmbeddings(
     base_url=settings.LLM_URL,
     api_key="lm-studio-dummy-key",
     check_embedding_ctx_length=False,  # Отключаем проверку длины контекста
-    request_timeout=60,
+    request_timeout=120,
 )
 
 # === ONLINE MODELS ===

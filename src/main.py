@@ -36,7 +36,3 @@ def running_agent():
 
 
 running_agent()
-
-
-# index_pdf_folder(settings.PDF_FOLDER)  # 1. убеждаемся что всё проиндексировано
-# retriever = get_retriever()             # 2. открываем БД для поиска

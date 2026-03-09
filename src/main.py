@@ -21,7 +21,15 @@ def running_agent():
             HumanMessage(content=user_input)
         ]  # converts back to a HumanMessage type
 
-        result = rag_agent.invoke({"messages": messages})
+        result = rag_agent.invoke(
+            {
+                "messages": messages
+            },
+            {
+                "configurable": {"thread_id": "1"},  # memorySaver config
+                "recursion_limit": 10  # Amount of llm's invokes
+            }
+        )
 
         print("\n=== ANSWER ===")
         print(result["messages"][-1].content)

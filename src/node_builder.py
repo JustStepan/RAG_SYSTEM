@@ -1,7 +1,10 @@
 from langgraph.graph import StateGraph, END, START
+from langgraph.checkpoint.memory import MemorySaver
 
 from agent import AgentState, call_llm, should_continue, take_action
 
+
+memory = MemorySaver()
 
 def builder() -> StateGraph:
     graph = StateGraph(AgentState)
@@ -16,4 +19,4 @@ def builder() -> StateGraph:
         path=should_continue,
         path_map={True: "retriever_agent", False: END},
     )
-    return graph.compile()
+    return graph.compile(checkpointer=memory)

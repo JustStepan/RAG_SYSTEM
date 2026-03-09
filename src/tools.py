@@ -20,6 +20,7 @@ def web_search_tool(query: str) -> str:
     Searches the internet for current information.
     Use this tool when: the question is not related to Orthodox Christianity,
     or when retriever_tool did not return relevant results.
+    you can use this tool only twise, so build you query carefuly.
     """
     docs: StructuredTool = _online_retriever.invoke(query)
 
@@ -28,11 +29,17 @@ def web_search_tool(query: str) -> str:
         return 'Tavily не преслал релевантных документов'
 
     results = []
+    tavily_results = docs.get('results')
+
+    if tavily_results[0].get('score', 0) < 0.4:
+        return f"Tavily не нашёл релевантной информации по запросу '{query}'. Не повторяй этот поиск."
+
     if docs.get('answer'):
         results.append(f'Общий ответ на запрос "{query}" = {docs.get('answer')}')
-
-    for numb, doc in enumerate(docs.get('results')):
-        if doc.get('score') and doc.get('score') > 0.5:
+  
+    for numb, doc in enumerate(tavily_results):
+        logger.info(f'{doc.get('title')} --> {doc.get('score')}')
+        if doc.get('score') and doc.get('score') >= 0.4:
             results.append(f'\n{numb} ответ на запрос = {doc.get('content', '')}')
 
     return "\n\n".join(results)
@@ -43,7 +50,8 @@ def retrivier_tool(query: str) -> str:
     """
     Searches and returns information from local Orthodox Christian documents database.
     Use this tool for questions about Orthodox theology, saints, spiritual practices,
-    church history, and religious texts.
+    church history, and religious texts. If this tool didn't give you relevant information
+    after 5 atempts you can try another tools.
     """
     docs = _local_retriever.invoke(query)
     if not docs:

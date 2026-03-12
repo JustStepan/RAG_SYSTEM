@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     COLLECTION_NAME: str
     OPENAI_API_KEY: str
     TAVILY_API_KEY: str
-    LLM_MODEL: str = "qwen3.5-9b-optiq"
+    LLM_MODEL: str = "qwen3.5-2b"
     EMBEDDING_MODEL: str = "text-embedding-berta-uncased"
     LLM_URL: str = "http://localhost:1234/v1"
     CHUNK_SIZE: int = 512
